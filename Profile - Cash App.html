@@ -739,22 +739,15 @@
         logoutBtn.addEventListener("click", async (e) => {
           e.preventDefault();
           
-          // Call logout API
-          try {
-            await fetch('/api/auth/logout', {
-              method: 'POST',
-              credentials: 'include'
-            });
-          } catch (error) {
-            console.warn('Logout API call failed:', error);
+          const confirmLogout = confirm('Are you sure you want to logout?\n\nThis will clear your session.');
+          if (confirmLogout) {
+            // Clear all session storage and localStorage
+            sessionStorage.clear();
+            localStorage.clear();
+            
+            // Force redirect to login/home page
+            window.location.replace('./Money - Cash App.html');
           }
-          
-          // Clear session storage and localStorage
-          sessionStorage.clear();
-          localStorage.removeItem('deviceId');
-          
-          // Force redirect to login page
-          window.location.replace('./Money - Cash App.html');
         });
       }
 

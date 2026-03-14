@@ -1656,19 +1656,6 @@
       document.addEventListener("DOMContentLoaded", () => {
         loadProfileIcon();
 
-      // Add logout functionality to profile icon
-      profileIconLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        const confirmLogout = confirm('Are you sure you want to logout?\n\nThis will clear your session.');
-        if (confirmLogout) {
-          // Clear all localStorage data
-          localStorage.clear();
-          sessionStorage.clear();
-          
-          // Redirect to login page
-          window.location.href = 'Pay%20-%20Cash%20App.html';
-        }
-      });
         updateDisplay();
       });
     </script>
