@@ -1357,15 +1357,24 @@
           const fallbackInitial = (fallbackName.trim().charAt(0) || "?")
             .toUpperCase();
           setTypedAvatarMode(isTikTok);
-          typedRecipientAvatar.style.backgroundImage = "none";
-          typedRecipientAvatar.textContent = fallbackInitial;
-          if (!url) return;
+          
+          if (!url) {
+            typedRecipientAvatar.style.backgroundImage = "none";
+            typedRecipientAvatar.textContent = fallbackInitial;
+            return;
+          }
+          
+          // Create image to verify it loads
           const previewImage = new Image();
           previewImage.onload = () => {
-            typedRecipientAvatar.style.backgroundImage = `url(${url})`;
+            // Image loaded successfully - set it as background
+            typedRecipientAvatar.style.backgroundImage = `url("${url}")`;
+            typedRecipientAvatar.style.backgroundSize = "cover";
+            typedRecipientAvatar.style.backgroundPosition = "center";
             typedRecipientAvatar.textContent = "";
           };
           previewImage.onerror = () => {
+            // Image failed to load - show initial
             typedRecipientAvatar.style.backgroundImage = "none";
             typedRecipientAvatar.textContent = fallbackInitial;
             if (!isTikTok && fallbackToTikTok && fallbackUsername.length >= 3) {
