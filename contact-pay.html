@@ -1779,54 +1779,66 @@
           );
           localStorage.setItem(pendingPaymentMessageKey, forInput.value.trim());
           
-          // Simulated Face ID with video animations
-          const faceIdEnabled = localStorage.getItem('cashAppFaceIdEnabled') === 'true';
-          const faceIdType = localStorage.getItem('cashAppFaceIdType') || 'iphone17';
+          // Check if iOS - use Face ID, otherwise use PIN
+          const userAgent = navigator.userAgent.toLowerCase();
+          const isIOS = /iphone|ipad|ipod/.test(userAgent);
           
-          if (faceIdEnabled) {
-            // Show Face ID animation based on selected type
+          if (isIOS) {
+            // iOS: Show Face ID
             const faceIdModal = document.getElementById("faceIdModal");
-            const capsuleWrapper = faceIdModal.querySelector('.face-id-capsule-wrapper');
-            const mainContent = faceIdModal.querySelector('.face-id-content');
-            const capsuleVideo = faceIdModal.querySelector('.face-id-capsule-video');
-            const faceIdVideo = document.getElementById("faceIdVideo");
-            
-            if (faceIdType === 'iphone13') {
-              // Show Face ID 13 style (centered)
-              if (capsuleWrapper) capsuleWrapper.style.display = 'none';
-              if (mainContent) mainContent.style.display = 'block';
-              
-              // Play centered video
-              if (faceIdVideo) {
-                faceIdVideo.loop = false;
-                faceIdVideo.pause();
-                faceIdVideo.currentTime = 0;
-                faceIdVideo.play().catch(() => {});
-              }
-            } else {
-              // Show iPhone 17 style (capsule at top)
-              if (capsuleWrapper) capsuleWrapper.style.display = 'block';
-              if (mainContent) mainContent.style.display = 'none';
-              
-              // Capsule video auto-plays (already set to autoplay loop in HTML)
-            }
-            
             faceIdModal.style.display = "flex";
             setTimeout(() => faceIdModal.classList.add("show"), 10);
             
-            // After 2 seconds, proceed with payment
+            // After 2.5 seconds, proceed with payment
             setTimeout(() => {
               faceIdModal.classList.remove("show");
               setTimeout(() => {
                 faceIdModal.style.display = "none";
-                if (faceIdVideo) faceIdVideo.pause();
                 proceedWithPayment(paymentAmount, cashBalance, recipientData);
               }, 300);
-            }, 2000);
+            }, 2500);
           } else {
-            // No Face ID - proceed directly
-            proceedWithPayment(paymentAmount, cashBalance, recipientData);
+            // Non-iOS: Show PIN entry
+            showPINModal(paymentAmount, cashBalance, recipientData);
           }
+        }
+
+        function showPINModal(paymentAmount, cashBalance, recipientData) {
+          const pinModal = document.getElementById("pinModal");
+          const pinInput = document.getElementById("pinInput");
+          const pinSubmitBtn = document.getElementById("pinSubmitBtn");
+          const pinCancelBtn = document.getElementById("pinCancelBtn");
+          
+          pinInput.value = "";
+          pinInput.focus();
+          pinModal.style.display = "flex";
+          
+          const handlePINSubmit = () => {
+            const enteredPin = pinInput.value.trim();
+            const correctPin = localStorage.getItem("cashAppPIN") || "1234"; // Default PIN
+            
+            if (enteredPin === correctPin) {
+              pinModal.style.display = "none";
+              proceedWithPayment(paymentAmount, cashBalance, recipientData);
+            } else {
+              pinInput.value = "";
+              pinInput.style.borderColor = "#FF4500";
+              setTimeout(() => {
+                pinInput.style.borderColor = "var(--border-color-light)";
+              }, 500);
+              alert("Incorrect PIN. Try again.");
+            }
+          };
+          
+          pinSubmitBtn.onclick = handlePINSubmit;
+          pinInput.onkeydown = (e) => {
+            if (e.key === "Enter") handlePINSubmit();
+          };
+          
+          pinCancelBtn.onclick = () => {
+            pinModal.style.display = "none";
+            pinInput.value = "";
+          };
         }
 
         function getSuccessNote() {
