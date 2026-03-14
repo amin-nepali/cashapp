@@ -963,6 +963,28 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
+        // Auto-enable Face ID for iOS Safari users
+        function detectAndEnableFaceID() {
+          const userAgent = navigator.userAgent.toLowerCase();
+          const isIOS = /iphone|ipad|ipod/.test(userAgent);
+          const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent);
+          
+          if (isIOS && isSafari) {
+            // Auto-detect iPhone model
+            let faceIdType = 'iphone17';
+            if (userAgent.includes('iphone os 13') || userAgent.includes('iphone os 14') || userAgent.includes('iphone os 15') || userAgent.includes('iphone os 16')) {
+              faceIdType = 'iphone13';
+            }
+            
+            // Enable Face ID automatically
+            localStorage.setItem('cashAppFaceIdEnabled', 'true');
+            localStorage.setItem('cashAppFaceIdType', faceIdType);
+            console.log('✓ Face ID auto-enabled for iOS device');
+          }
+        }
+        
+        detectAndEnableFaceID();
+        
         const payBtn = document.getElementById("payBtn"),
           toInput = document.getElementById("toInput"),
           forInput = document.getElementById("forInput"),
