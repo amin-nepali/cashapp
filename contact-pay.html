@@ -932,6 +932,16 @@
         <button class="modal-action-btn" id="alert-ok-btn">OK</button>
       </div>
     </div>
+    <!-- PIN Verification Modal -->
+    <div id="pinModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 5000; display: flex; align-items: center; justify-content: center;">
+      <div style="background: var(--bg-primary); border-radius: 20px; padding: 40px 24px; width: 90%; max-width: 340px; text-align: center;">
+        <h3 style="color: var(--text-primary); font-size: 20px; margin-bottom: 8px;">Enter PIN</h3>
+        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">Confirm payment with your PIN</p>
+        <input id="pinInput" type="password" inputmode="numeric" placeholder="0000" maxlength="4" style="width: 100%; padding: 16px; border: 2px solid var(--border-color-light); border-radius: 12px; font-size: 24px; text-align: center; letter-spacing: 12px; font-family: monospace; margin-bottom: 24px; color: var(--text-primary); background: var(--app-bg-secondary);">
+        <button id="pinSubmitBtn" style="width: 100%; padding: 14px; background: var(--accent-green); color: white; border: none; border-radius: 28px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 12px;">Confirm</button>
+        <button id="pinCancelBtn" style="width: 100%; padding: 14px; background: var(--button-green-disabled); color: var(--text-primary); border: none; border-radius: 28px; font-size: 16px; font-weight: 600; cursor: pointer;">Cancel</button>
+      </div>
+    </div>
     <!-- Face ID Verification Modal -->
     <div id="faceIdModal" class="face-id-modal">
       <div class="face-id-capsule-wrapper">
