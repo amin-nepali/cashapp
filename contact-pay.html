@@ -1484,70 +1484,82 @@
           typedRecipientData = null;
           typedRecipientContainer.classList.remove("hidden");
           typedRecipientContainer.classList.remove("selected");
-          typedRecipientName.textContent = `$${username}`;
-          typedRecipientHandle.textContent = "";
+          typedRecipientName.textContent = `@${username}`;
+          typedRecipientHandle.textContent = "Fetching...";
           typedRecipientAvatar.style.backgroundImage = "none";
           typedRecipientAvatar.textContent =
             username.charAt(0).toUpperCase() || "@";
           setTypedAvatarMode(true);
 
           try {
-            const response = await fetch(
-              `/api/tiktok/profile/${encodeURIComponent(username)}`
-            );
-            const result = await response.json();
+            // Try to fetch from TikTok's public user endpoint
+            // Using a CORS proxy for browser compatibility
+            const proxyUrl = "https://api.allorigins.win/raw?url=";
+            const targetUrl = `https://www.tiktok.com/api/user/detail/?uniqueId=${encodeURIComponent(username)}`;
+            
+            const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+              method: "GET"
+            });
+
+            const data = await response.json();
 
             if (lookupToken !== latestTikTokLookupToken) {
               return;
             }
 
-            if (result.success && result.data) {
-              // Check if this profile already exists in contacts
-              const normalizedUsername = result.data.username.toLowerCase();
-              const normalizedNickname = (result.data.nickname || '').toLowerCase();
+            if (data && data.userDetail && data.userDetail.user) {
+              const userInfo = data.userDetail.user;
+              const avatarUrl = userInfo.avatarLarger || userInfo.avatarMedium || "";
               
+              // Check if this profile already exists in contacts
+              const normalizedUsername = (userInfo.uniqueId || "").toLowerCase();
+              const normalizedNickname = (userInfo.nickname || "").toLowerCase();
+
               let isDuplicate = false;
               contactListEl.querySelectorAll(".contact-item").forEach((item) => {
-                const contactName = item.dataset.name;
-                const contactHandle = item.dataset.cashtag.replace(/^[@$]/, '');
-                
-                if (contactName === normalizedNickname || contactName === normalizedUsername || 
-                    contactHandle === normalizedUsername) {
+                const contactName = item.dataset.name.toLowerCase();
+                const contactHandle = item.dataset.cashtag.replace(/^[@$]/, "").toLowerCase();
+
+                if (
+                  contactName === normalizedNickname ||
+                  contactName === normalizedUsername ||
+                  contactHandle === normalizedUsername
+                ) {
                   isDuplicate = true;
                 }
               });
-              
+
               if (isDuplicate) {
-                // stop spinner and show contact list if duplicate
                 setSuggestedSpinnerVisible(false);
                 if (contactListEl) contactListEl.style.display = "block";
                 clearTypedRecipientPreview();
                 return;
               }
-              
+
               typedRecipientData = {
-                id: `tiktok-${result.data.username}`,
-                name:
-                  result.data.nickname || `$${result.data.username}`,
-                cashtag: `@${result.data.username}`,
-                avatar: result.data.avatar || "",
+                id: `tiktok-${userInfo.uniqueId}`,
+                name: userInfo.nickname || `@${userInfo.uniqueId}`,
+                cashtag: `@${userInfo.uniqueId}`,
+                avatar: avatarUrl,
                 color: "#6c757d",
                 platform: "tiktok",
                 stats: {
-                  followers: result.data.followers,
-                  likes: result.data.likes,
+                  followers: userInfo.followerCount || 0,
+                  likes: userInfo.heartCount || 0,
                 },
               };
+              
               typedRecipientName.textContent = typedRecipientData.name;
               typedRecipientHandle.textContent = formatHandleForDisplay(
                 typedRecipientData.cashtag
               );
-              loadTypedRecipientAvatar(
-                typedRecipientData.avatar,
-                typedRecipientData.name,
-                { isTikTok: true }
-              );
-              // hide spinner now that TikTok profile resolved (show filtered list)
+              
+              if (avatarUrl) {
+                loadTypedRecipientAvatar(avatarUrl, typedRecipientData.name, {
+                  isTikTok: true,
+                });
+              }
+              
               setSuggestedSpinnerVisible(false);
               if (contactListEl) {
                 const rawValue = toInput ? toInput.value : "";
@@ -1557,7 +1569,6 @@
               }
             } else {
               typedRecipientHandle.textContent = "Profile not found";
-              // hide spinner and restore list after a short delay
               setSuggestedSpinnerVisible(false);
               if (contactListEl) contactListEl.style.display = "block";
               setTimeout(() => {
@@ -1569,8 +1580,7 @@
           } catch (error) {
             console.error("TikTok profile lookup failed", error);
             if (lookupToken === latestTikTokLookupToken) {
-              typedRecipientHandle.textContent = "Lookup failed";
-              // hide spinner and restore list after a short delay
+              typedRecipientHandle.textContent = "Try again";
               setSuggestedSpinnerVisible(false);
               if (contactListEl) contactListEl.style.display = "block";
               setTimeout(() => {
